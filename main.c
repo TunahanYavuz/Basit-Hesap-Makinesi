@@ -137,7 +137,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     }
                     else {
                         unsigned int length = GetWindowTextLength(window);
-                        SendMessage(window, EM_SETSEL, length - 1, (LPARAM) length);
+                        SendMessage(window, EM_SETSEL, length-1, (LPARAM) length);
                         SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM) buttonText);
 
                     }
@@ -174,34 +174,37 @@ void SendResult(){
 
 
 double Hesapla(const char *content) {
-    char *temp = malloc(sizeof(content) + 1);
-    strcpy(temp, content);
-    char operations[10];
-    double numbers[sizeof(content)];
+    char *temp = malloc(sizeof(content) + 1); //geçici bir char pointer oluşturuyoruz.
+    strcpy(temp, content);            //geçici pointer' a içeriği yazıyoruz.
+    char operations[sizeof(content)/3];             //operasyonlar ve sayılar için dizi oluşturuyoruz.
+    double numbers[sizeof(content)*2/3];
 
-    char *token = strtok(temp, "+-*/");
-    numbers[0] = atof(token);
+    char *token = strtok(temp, "+-*/");   //fonksiyonla operatör görülene kadar temp ifadesini kesiyoruz.
+    numbers[0] = atof(token);                   //string ifadeyi double bir ifadeye çevirip 0. indeks' e atıyoruz.
     int u = 1;
-    while (token != NULL){
-        token = strtok(NULL, "+-*/");
-        if (token != NULL) {
+    while (token != NULL){                            //token null değilse yani string ifade bitmemişse bitirene kadar döngüye sokuyoruz.
+        token = strtok(NULL, "+-*/");       //NULL ifadesini girerek kaldığı yerden devam etmesini sağlıyoruz.
+        if (token != NULL) {                           //Bu koşulda da token null değilse sayılar ve operatörler dizinise değerlerini atıyoruz.
             numbers[u] = atof(token);
             operations[u-1] = content[token - temp - 1];
             u++;
         }
     }
-    if(content[0] == '-')
-        numbers[0]=-numbers[0];
+    if(content[0] == '-')           //operatör dizisi sadece iki sayı arasında kalan operatörleri aldığı için içeriğin ilk karakteri-
+        numbers[0]=-numbers[0];     //negatifse sayıların ilk değerini - ile çarpıyoruz.
     double num1,num2;
-    for (int i = 0; i < sizeof(operations)/ sizeof(operations[0]) ; ++i) {
-
+    for (int i = 0; i < sizeof(operations)/ sizeof(operations[0]) ; ++i) {  //operasyon sayısı kadar döngüye giriyoruz
+                                                        //bu switch case' de sadece çarpma ve bölme işlemleri için işlem yapılacak.
         switch (operations[i]) {
             case '*':
-                num1=numbers[i];
+                num1=numbers[i];    //0. operatör için 0. sayı ve 1. sayı gerektiği için bu iki sayıyı bir değişkene aktarıyoruz.
                 num2=numbers[i+1];
-                num1=num1*num2;
-                numbers[i]=num1;
-                for (int j = i+1; j < sizeof(numbers)/sizeof(numbers[0]); ++j) {
+                num1=num1*num2;     //daha sonra 0. ve 1. sayı için gerekli işlemi yapıyoruz ve num1 e atıyoruz.
+                numbers[i]=num1;    //daha sonra 0. indekse bu işlem sonucusu yazıyoruz.
+                for (int j = i+1; j < sizeof(numbers)/sizeof(numbers[0]); ++j) {    //işin zor kısmı burada başlıyor çünkü her çarpma ve bölme işleminden sonra
+                    //bu dizileri yeniden düzenlemek gerekiyor. Benim burada kullandığım taktik şuydu kullanılan operatörü silip yerine ondan sonra
+                    //gelecek olan operatörleri yazmak ve 1. indekste kullandığımız sayıdan başlayark her indekse bir sonraki sayıyı yazacak.
+                    //bu işlem sonunda peş peşe gelen * ve / operatörleri olabileceğinden döngüyü 1 kez geri sararak tekrar kontrol sağlayacak.
                     numbers[j]=numbers[j+1];
                 }
                 for (int j = i; j < sizeof(operations) / sizeof (operations[0]);++j) {
@@ -213,7 +216,7 @@ double Hesapla(const char *content) {
                 num1=numbers[i];
                 num2=numbers[i+1];
                 if(num2==0) {
-                    MessageBoxW(NULL, L"0' a bölünemez", L"HATA", MB_ICONERROR);
+                    MessageBoxW(NULL, L"0' a bölünemez", L"HATA", MB_ICONERROR); //0' a bölme hata mesajı. Main de kullanılan SetConsoleOutput ifadesi ile Türkçe karakter yazdırabildik.
                     return 0.0;
                 }
                 num1=num1/num2;
@@ -228,9 +231,9 @@ double Hesapla(const char *content) {
             break;
         }
     }
-    double result=numbers[0];
+    double result=numbers[0];   //eğer bir toplama ya da çıkarma işlemi yoksa 0. indeksimiz bizim sonucumuz olacağından sonuca sayıların 0. indeksini veriyoruz.
     for (int i = 0; i <= sizeof(operations)/ sizeof(operations[0]) ; ++i) {
-        switch (operations[i]) {
+        switch (operations[i]) { //toplama ya da çıkarma işlemi varsa bu 0. indeks ve 1. indeks arasında olacağından işleme göre 1. indeksle işlem yapıyoruz.
             case '+':
                 result+=numbers[i+1];
                 break;
@@ -239,6 +242,6 @@ double Hesapla(const char *content) {
                 break;
         }
     }
-    free(temp);
+    free(temp); //bellekte ayırdığımız yeri boşaltıyoruz.
     return result;
 }
