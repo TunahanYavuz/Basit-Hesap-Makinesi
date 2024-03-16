@@ -2,12 +2,10 @@
 #include <stdio.h>
 #include <math.h>
 
-void SonucuYazdir();
-double Hesapla(const char* icerik);     //fonksiyonlar.
-double Hesapla2(const char *icerik);
-int kosul=0;
-HWND pencere;   //global değişken(mesaj kutusunu farklı yerlerde kullanacağız).
-HWND hwnd;
+void SendResult();
+double Hesapla(const char* content);     //fonksiyonlar.
+HWND window;   //global değişken(mesaj kutusunu farklı yerlerde kullanacağız).
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int main ()
@@ -24,7 +22,7 @@ int main ()
     RegisterClass(&wc);
 
 
-    hwnd = CreateWindowEx( //ana pencerenin oluşturulması
+    HWND hwnd = CreateWindowEx( //ana pencerenin oluşturulması
             WS_EX_TRANSPARENT, wc.lpszClassName, "Hesap Makinesi", WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT, 235, 305,
             NULL, NULL, wc.hInstance, NULL
@@ -64,10 +62,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             PostQuitMessage(0);
             return 0;
         case WM_CREATE: //Butonları ve Mesaj kutusunu oluşturma.
-            pencere=CreateWindowEx(0,"edit","",
+            window=CreateWindowEx(0, "edit", "",
                            WS_CHILD|WS_VISIBLE|ES_LEFT|ES_AUTOHSCROLL|WS_BORDER|WS_DISABLED,
-                           10,5,200,30,hwnd,(HMENU)0, //HMENU ye verilen numara Butonun ID numarasını verir.
-                           GetModuleHandle(0),0);
+                                  10, 5, 200, 30, hwnd, (HMENU)0, //HMENU ye verilen numara Butonun ID numarasını verir.
+                           GetModuleHandle(0), 0);
             int buttonNumber=0;
             for (int i = 0; i <4 ; ++i) {   //0 dan 9 a kadar olan sayıları oluşturma.
                 for (int j = 0; j <3 ; ++j) {
@@ -84,13 +82,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 }
 
             }
-            wchar_t operasyonlar[]={'+', '-', '*', '/'};
-            wchar_t operasyon[1];
+            wchar_t operations[]={'+', '-', '*', '/'};
+            wchar_t operation[1];
             for (int i = 0; i < 4; ++i) {//Operasyon butonlarını oluşturuyoruz.
 
 
-                operasyon[0]=operasyonlar[i];
-                CreateWindowEx(0, "Button", (LPCSTR) operasyon, WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+                operation[0]=operations[i];
+                CreateWindowEx(0, "Button", (LPCSTR) operation, WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
                                160,40+(i*40), 50, 40, hwnd, (HMENU)(12+i), GetModuleHandle(0), 0);
 
             }
@@ -111,29 +109,28 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_COMMAND:    //Buton işlemleri.
             if(HIWORD(wParam)==BN_CLICKED) {
-                wchar_t butonMetni[2];
-                int butonId= LOWORD(wParam);
-                if (butonId == 18){     //= ise hesaplıyoruz.
-                    SonucuYazdir();
+                wchar_t buttonText[2];
+                int buttonId= LOWORD(wParam);
+                if (buttonId == 18){     //= ise hesaplıyoruz.
+                    SendResult();
                 }
-                else if (butonId==19){      //Clear ise tamamen siliyoruz.
-                    SetWindowText(pencere,"");
+                else if (buttonId == 19){      //Clear ise tamamen siliyoruz.
+                    SetWindowText(window, "");
                 }
-                else if(butonId==20){       //C ise son karakteri siliyoruz.
-                    unsigned int length = GetWindowTextLength(pencere);
+                else if(buttonId == 20){       //C ise son karakteri siliyoruz.
+                    unsigned int length = GetWindowTextLength(window);
                     if (length>0){
-                        SendMessage(pencere,EM_SETSEL,length-1,(LPARAM)length);     //son karakteri Set ediyoruz.
-                        SendMessage(pencere,EM_REPLACESEL,TRUE,(LPARAM)"");        //son karakterin yerine boşluk koyuyoruz.
+                        SendMessage(window, EM_SETSEL, length - 1, (LPARAM)length);     //son karakteri Set ediyoruz.
+                        SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM)"");        //son karakterin yerine boşluk koyuyoruz.
                     }
                 }
-                else if(butonId>11&&butonId<16){   //Operasyonları yazdırıyoruz.
-                GetWindowText(GetDlgItem(hwnd, butonId), (LPSTR)butonMetni, 2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
-                SendMessage(pencere, EM_REPLACESEL, TRUE,(LPARAM)butonMetni);
-
-                }  //Buton metnini metın kutusuna(pencereye) yolluyoruz.
+                else if(buttonId > 11 && buttonId < 16){   //Operasyonları yazdırıyoruz.
+                GetWindowText(GetDlgItem(hwnd, buttonId), (LPSTR)buttonText, 2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
+                SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM)buttonText);   //Buton metnini metın kutusuna(pencereye) yolluyoruz.
+                }
                 else {   //Sayıları yazdırıyoruz.
-                    GetWindowText(GetDlgItem(hwnd, butonId), (LPSTR) butonMetni,2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
-                    SendMessage(pencere, EM_REPLACESEL, TRUE, (LPARAM) butonMetni);
+                    GetWindowText(GetDlgItem(hwnd, buttonId), (LPSTR) buttonText, 2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
+                    SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM) buttonText);
                 }
             }
 
@@ -148,24 +145,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
-void SonucuYazdir(){
-    int length = GetWindowTextLength(pencere);
-    char* icerik = malloc(length + 1);   //pointer icerik oluşturup ona bir büyüklük ve bellekteki yerini veriyoruz.
-    GetWindowText(pencere, icerik, length +1); //icerik pt a penceredeki metni aktarıyoruz.
-    double sonuc = Hesapla(icerik);     //sonucu alıyoruz.
-    SetWindowText(pencere,"");  //önce pencereyi temizliyoruz
-    char sonucmetni[40];    //Sonucu ekrana string olarak göndermek için bir char dizisi oluşturuyoruz.
-    sprintf(sonucmetni, "%.2lf",sonuc); //Sonucu char dizisine yazıyoruz.
-    SendMessage(pencere,EM_REPLACESEL,TRUE,(LPARAM)sonucmetni);//Sonucu pencereye yazıyoruz.
-    free(icerik);   //Bellekte açtığımız yeri boşaltıyoruz.
+void SendResult(){
+    int length = GetWindowTextLength(window);
+    char* content = malloc(length + 1);   //pointer content oluşturup ona bir büyüklük ve bellekteki yerini veriyoruz.
+    GetWindowText(window, content, length + 1); //content pt a penceredeki metni aktarıyoruz.
+    double result = Hesapla(content);     //sonucu alıyoruz.
+    SetWindowText(window, "");  //önce pencereyi temizliyoruz
+    char resultText[40];    //Sonucu ekrana string olarak göndermek için bir char dizisi oluşturuyoruz.
+    sprintf(resultText, "%.2lf", result); //Sonucu char dizisine yazıyoruz.
+    SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM)resultText);//Sonucu pencereye yazıyoruz.
+    free(content);   //Bellekte açtığımız yeri boşaltıyoruz.
 }
 
 
-double Hesapla(const char *icerik) {
-    char *temp = malloc(sizeof(icerik) + 1);
-    strcpy(temp, icerik);
+double Hesapla(const char *content) {
+    char *temp = malloc(sizeof(content) + 1);
+    strcpy(temp, content);
     char operations[10];
-    double numbers[sizeof(icerik)];
+    double numbers[sizeof(content)];
 
     char *token = strtok(temp, "+-*/");
     numbers[0] = atof(token);
@@ -174,11 +171,11 @@ double Hesapla(const char *icerik) {
         token = strtok(NULL, "+-*/");
         if (token != NULL) {
             numbers[u] = atof(token);
-            operations[u-1] = icerik[token-temp - 1];
+            operations[u-1] = content[token - temp - 1];
             u++;
         }
     }
-    if(icerik[0]=='-')
+    if(content[0] == '-')
         numbers[0]=-numbers[0];
     double num1,num2;
     for (int i = 0; i < sizeof(operations)/ sizeof(operations[0]) ; ++i) {
@@ -195,13 +192,14 @@ double Hesapla(const char *icerik) {
                 for (int j = i; j < sizeof(operations) / sizeof (operations[0]);++j) {
                     operations[j]=operations[j+1];
                 }
+                puts(operations);
                 --i;
             break;
             case '/':
                 num1=numbers[i];
                 num2=numbers[i+1];
                 if(num2==0) {
-                    MessageBoxW(hwnd, L"0' a bölünemez", L"HATA", MB_ICONERROR);
+                    MessageBoxW(NULL, L"0' a bölünemez", L"HATA", MB_ICONERROR);
                     return 0.0;
                 }
                 num1=num1/num2;
@@ -224,6 +222,7 @@ double Hesapla(const char *icerik) {
                 break;
             case '-':
                 result-=numbers[i+1];
+                break;
         }
     }
     free(temp);
