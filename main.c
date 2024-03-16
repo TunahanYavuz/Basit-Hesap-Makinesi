@@ -207,7 +207,6 @@ double Hesapla(const char *content) {
                 for (int j = i; j < sizeof(operations) / sizeof (operations[0]);++j) {
                     operations[j]=operations[j+1];
                 }
-                puts(operations);
                 --i;
             break;
             case '/':
