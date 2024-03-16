@@ -4,6 +4,7 @@
 
 void SendResult();
 double Hesapla(const char* content);     //fonksiyonlar.
+int operationControl=0;
 HWND window;   //global değişken(mesaj kutusunu farklı yerlerde kullanacağız).
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -124,13 +125,27 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM)"");        //son karakterin yerine boşluk koyuyoruz.
                     }
                 }
-                else if(buttonId > 11 && buttonId < 16){   //Operasyonları yazdırıyoruz.
-                GetWindowText(GetDlgItem(hwnd, buttonId), (LPSTR)buttonText, 2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
-                SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM)buttonText);   //Buton metnini metın kutusuna(pencereye) yolluyoruz.
+                else if(buttonId > 11 && buttonId < 16) {   //Operasyonları yazdırıyoruz.
+                    GetWindowText(GetDlgItem(hwnd, buttonId), (LPSTR) buttonText,
+                                  2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
+
+                    if (operationControl == 0){
+                        SendMessage(window, EM_REPLACESEL, TRUE,
+                                    (LPARAM) buttonText);   //Buton metnini metın kutusuna(pencereye) yolluyoruz.
+
+                        operationControl++;
+                    }
+                    else {
+                        unsigned int length = GetWindowTextLength(window);
+                        SendMessage(window, EM_SETSEL, length - 1, (LPARAM) length);
+                        SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM) buttonText);
+
+                    }
                 }
                 else {   //Sayıları yazdırıyoruz.
                     GetWindowText(GetDlgItem(hwnd, buttonId), (LPSTR) buttonText, 2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
                     SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM) buttonText);
+                    operationControl=0;
                 }
             }
 
