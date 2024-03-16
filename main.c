@@ -3,7 +3,7 @@
 #include <math.h>
 
 void SendResult();
-double Hesapla(const char* content);     //fonksiyonlar.
+double Calculate(const char* content);     //fonksiyonlar.
 int operationControl=0;
 HWND window;   //global değişken(mesaj kutusunu farklı yerlerde kullanacağız).
 
@@ -164,7 +164,7 @@ void SendResult(){
     int length = GetWindowTextLength(window);
     char* content = malloc(length + 1);   //pointer content oluşturup ona bir büyüklük ve bellekteki yerini veriyoruz.
     GetWindowText(window, content, length + 1); //content pt a penceredeki metni aktarıyoruz.
-    double result = Hesapla(content);     //sonucu alıyoruz.
+    double result = Calculate(content);     //sonucu alıyoruz.
     SetWindowText(window, "");  //önce pencereyi temizliyoruz
     char resultText[40];    //Sonucu ekrana string olarak göndermek için bir char dizisi oluşturuyoruz.
     sprintf(resultText, "%.2lf", result); //Sonucu char dizisine yazıyoruz.
@@ -173,7 +173,7 @@ void SendResult(){
 }
 
 
-double Hesapla(const char *content) {
+double Calculate(const char *content) {
     char *temp = malloc(sizeof(content) + 1); //geçici bir char pointer oluşturuyoruz.
     strcpy(temp, content);            //geçici pointer' a içeriği yazıyoruz.
     char operations[sizeof(content)/3];             //operasyonlar ve sayılar için dizi oluşturuyoruz.
