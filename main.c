@@ -4,12 +4,15 @@
 
 void SonucuYazdir();
 double Hesapla(const char* icerik);     //fonksiyonlar.
+double Hesapla2(const char *icerik);
+int kosul=0;
 HWND pencere;   //global değişken(mesaj kutusunu farklı yerlerde kullanacağız).
-
+HWND hwnd;
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int main ()
 {
+    SetConsoleOutputCP(CP_UTF8);
     const char HesapMak[]  = "Basit Hesap Mak"; //Pencerenin class adı.
 
     WNDCLASS wc = {};
@@ -21,7 +24,7 @@ int main ()
     RegisterClass(&wc);
 
 
-    HWND hwnd = CreateWindowEx( //ana pencerenin oluşturulması
+    hwnd = CreateWindowEx( //ana pencerenin oluşturulması
             WS_EX_TRANSPARENT, wc.lpszClassName, "Hesap Makinesi", WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT, 235, 305,
             NULL, NULL, wc.hInstance, NULL
@@ -123,9 +126,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         SendMessage(pencere,EM_REPLACESEL,TRUE,(LPARAM)"");        //son karakterin yerine boşluk koyuyoruz.
                     }
                 }
-                else{   //Sayıları veya Operasyonları yazdırıyoruz.
+                else if(butonId>11&&butonId<16){   //Operasyonları yazdırıyoruz.
                 GetWindowText(GetDlgItem(hwnd, butonId), (LPSTR)butonMetni, 2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
-                SendMessage(pencere, EM_REPLACESEL, TRUE,(LPARAM)butonMetni);}  //Buton metnini metın kutusuna(pencereye) yolluyoruz.
+                SendMessage(pencere, EM_REPLACESEL, TRUE,(LPARAM)butonMetni);
+
+                }  //Buton metnini metın kutusuna(pencereye) yolluyoruz.
+                else {   //Sayıları yazdırıyoruz.
+                    GetWindowText(GetDlgItem(hwnd, butonId), (LPSTR) butonMetni,2);//ButonId sine göre buton metninin içeriğini değiştiriyoruz.
+                    SendMessage(pencere, EM_REPLACESEL, TRUE, (LPARAM) butonMetni);
+                }
             }
 
         case WM_PAINT:  //Arka planın boyanması.
@@ -150,39 +159,73 @@ void SonucuYazdir(){
     SendMessage(pencere,EM_REPLACESEL,TRUE,(LPARAM)sonucmetni);//Sonucu pencereye yazıyoruz.
     free(icerik);   //Bellekte açtığımız yeri boşaltıyoruz.
 }
-double Hesapla(const char *icerik){ //sadece okunacak olduğundan const char.
-    char* temp = malloc(strlen(icerik) + 1);    //geçici char dizisi daha.
-    strcpy(temp, icerik);   //diziye iceriği kopyalama.
-    char* token= strtok(temp,"+-*/");   //strkok fonksiyonuyla +-*/ görülene kadar metni okuma.
-    double sayi1,sonuc= atof(token);    //atof fonksiyonuyla string değeri doble,float değere dönüştürme. Eğer bir işlem yoksa direkt olarak bu değer ekrana yazdırılacaktır.
-    char operasyon;
-    while (token !=NULL) {      //içerik bitene kadar dögüye sokuyoruz.
-        token = strtok(NULL, "+-*/"); //2. sayıyı alacağımız için bir kez daha strtok kullanıyoruz ama NULL ifadesi giriyoruz. Bu şekilde önceden aldığı değerden okumaya devam edecek.
-        if (token != NULL){
-            sayi1 = atof(token);
-            operasyon = icerik[token - temp - 1]; //token - temp yani alınan değerden ilk değere kadar kaç karakter var -1 ise bize bir önceki karakteri vereceğinden operasyonu buluyoruz.
-            switch (operasyon) {
-                case '*':
-                    sonuc *= sayi1;
-                    break;
-                case '/':
-                    if (sayi1 != 0) { sonuc /= sayi1; }
-                    else {
-                        MessageBox(NULL, "0' a bolunulemez", "HATA", MB_ICONERROR); //0 a bölmeye kalkarsa hata mesajı.
-                        return 0.0;
-                    }
-                    break;
-                case '+':
-                    sonuc+=sayi1;
-                    break;
-                case '-':
-                    sonuc-=sayi1;
-                    break;
 
-            }
+
+double Hesapla(const char *icerik) {
+    char *temp = malloc(sizeof(icerik) + 1);
+    strcpy(temp, icerik);
+    char operations[10];
+    double numbers[sizeof(icerik)];
+
+    char *token = strtok(temp, "+-*/");
+    numbers[0] = atof(token);
+    int u = 1;
+    while (token != NULL){
+        token = strtok(NULL, "+-*/");
+        if (token != NULL) {
+            numbers[u] = atof(token);
+            operations[u-1] = icerik[token-temp - 1];
+            u++;
         }
     }
+    if(icerik[0]=='-')
+        numbers[0]=-numbers[0];
+    double num1,num2;
+    for (int i = 0; i < sizeof(operations)/ sizeof(operations[0]) ; ++i) {
 
-    free(temp); //belleği boşaltma.
-    return sonuc;   //sonucu döndürme
+        switch (operations[i]) {
+            case '*':
+                num1=numbers[i];
+                num2=numbers[i+1];
+                num1=num1*num2;
+                numbers[i]=num1;
+                for (int j = i+1; j < sizeof(numbers)/sizeof(numbers[0]); ++j) {
+                    numbers[j]=numbers[j+1];
+                }
+                for (int j = i; j < sizeof(operations) / sizeof (operations[0]);++j) {
+                    operations[j]=operations[j+1];
+                }
+                --i;
+            break;
+            case '/':
+                num1=numbers[i];
+                num2=numbers[i+1];
+                if(num2==0) {
+                    MessageBoxW(hwnd, L"0' a bölünemez", L"HATA", MB_ICONERROR);
+                    return 0.0;
+                }
+                num1=num1/num2;
+                numbers[i]=num1;
+                for (int j = i+1; j < sizeof(numbers)/sizeof(numbers[0]); ++j) {
+                    numbers[j]=numbers[j+1];
+                }
+                for (int j = i; j < sizeof(operations) / sizeof (operations[0]);++j) {
+                    operations[j]=operations[j+1];
+                }
+                --i;
+            break;
+        }
+    }
+    double result=numbers[0];
+    for (int i = 0; i <= sizeof(operations)/ sizeof(operations[0]) ; ++i) {
+        switch (operations[i]) {
+            case '+':
+                result+=numbers[i+1];
+                break;
+            case '-':
+                result-=numbers[i+1];
+        }
+    }
+    free(temp);
+    return result;
 }
