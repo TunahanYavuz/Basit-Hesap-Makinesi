@@ -167,7 +167,7 @@ void SendResult(){
     double result = Calculate(content);     //sonucu alıyoruz.
     SetWindowText(window, "");  //önce pencereyi temizliyoruz
     char resultText[40];    //Sonucu ekrana string olarak göndermek için bir char dizisi oluşturuyoruz.
-    sprintf(resultText, "%lf", result); //Sonucu char dizisine yazıyoruz.
+    sprintf(resultText, "%.2lf", result); //Sonucu char dizisine yazıyoruz.
     SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM)resultText);//Sonucu pencereye yazıyoruz.
     free(content);   //Bellekte açtığımız yeri boşaltıyoruz.
 }
