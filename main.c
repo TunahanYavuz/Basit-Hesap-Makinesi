@@ -167,7 +167,7 @@ void SendResult(){
     double result = Calculate(content);     //sonucu alıyoruz.
     SetWindowText(window, "");  //önce pencereyi temizliyoruz
     char resultText[40];    //Sonucu ekrana string olarak göndermek için bir char dizisi oluşturuyoruz.
-    sprintf(resultText, "%.2lf", result); //Sonucu char dizisine yazıyoruz.
+    sprintf(resultText, "%lf", result); //Sonucu char dizisine yazıyoruz.
     SendMessage(window, EM_REPLACESEL, TRUE, (LPARAM)resultText);//Sonucu pencereye yazıyoruz.
     free(content);   //Bellekte açtığımız yeri boşaltıyoruz.
 }
@@ -176,8 +176,8 @@ void SendResult(){
 double Calculate(const char *content) {
     char *temp = malloc(sizeof(content) + 1); //geçici bir char pointer oluşturuyoruz.
     strcpy(temp, content);            //geçici pointer' a içeriği yazıyoruz.
-    char operations[sizeof(content)/3];             //operasyonlar ve sayılar için dizi oluşturuyoruz.
-    double numbers[sizeof(content)*2/3];
+    char operations[sizeof(content)];             //operasyonlar ve sayılar için dizi oluşturuyoruz.
+    double numbers[sizeof(content)];
 
     char *token = strtok(temp, "+-*/");   //fonksiyonla operatör görülene kadar temp ifadesini kesiyoruz.
     numbers[0] = atof(token);                   //string ifadeyi double bir ifadeye çevirip 0. indeks' e atıyoruz.
@@ -232,7 +232,7 @@ double Calculate(const char *content) {
         }
     }
     double result=numbers[0];   //eğer bir toplama ya da çıkarma işlemi yoksa 0. indeksimiz bizim sonucumuz olacağından sonuca sayıların 0. indeksini veriyoruz.
-    for (int i = 0; i <= sizeof(operations)/ sizeof(operations[0]) ; ++i) {
+    for (int i = 0; i < sizeof(operations)/ sizeof(operations[0]) ; ++i) {
         switch (operations[i]) { //toplama ya da çıkarma işlemi varsa bu 0. indeks ve 1. indeks arasında olacağından işleme göre 1. indeksle işlem yapıyoruz.
             case '+':
                 result+=numbers[i+1];
