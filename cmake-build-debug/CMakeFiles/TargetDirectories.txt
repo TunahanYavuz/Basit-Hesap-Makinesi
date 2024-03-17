@@ -1,0 +1,3 @@
+C:/Users/rey_t/CLionProjects/C Projects/HesapMakine/cmake-build-debug/CMakeFiles/HesapMakine.dir
+C:/Users/rey_t/CLionProjects/C Projects/HesapMakine/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/rey_t/CLionProjects/C Projects/HesapMakine/cmake-build-debug/CMakeFiles/rebuild_cache.dir
